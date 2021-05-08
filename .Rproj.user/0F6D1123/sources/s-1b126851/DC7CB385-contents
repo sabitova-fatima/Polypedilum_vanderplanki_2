@@ -46,8 +46,8 @@ belki_sosedi <- function(chr, x) {
   o = 1;
   for (i in 1:nrow(chr)){
     n <- chr$Start[i + 1] - chr$End[i]
-    if (!is.na(n) && n < quantile(x, na.rm=TRUE)[3]){
-      if (o >= 10)
+    if (!is.na(n) && n <= quantile(x, na.rm=TRUE)[3]){
+      if (o >= 5)
         print(o)
       o = o + 1
     }
@@ -122,7 +122,7 @@ for(i in 1:nrow(chr_3_minus)) {
   x_minus[i] = (chr_3_minus$Start[i + 1] - chr_3_minus$End[i])
 }
 
-belki_sosedi(chr_3_plus, x_minus)
+belki_sosedi(chr_3_minus, x_minus)
 # summary(x_minus, na.rm=TRUE)
 
 ##### chromosome 4 #####
