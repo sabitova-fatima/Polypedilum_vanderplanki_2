@@ -3,7 +3,7 @@
     "path": "/cloud/project/vis_chr.R",
     "project_path": "vis_chr.R",
     "type": "r_source",
-    "hash": "0",
+    "hash": "1395068985",
     "contents": "",
     "dirty": false,
     "created": 1620464580561.0,
@@ -13,15 +13,15 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "69,8",
-        "scrollLine": "49"
+        "cursorPosition": "106,0",
+        "scrollLine": "89"
     },
-    "folds": "",
-    "lastKnownWriteTime": 1620469065,
+    "folds": "7|18|13|0|\n14|30|32|0|\n38|19|58|0|\n59|19|79|0|\n80|19|116|0|\n117|19|167|0|\n",
+    "lastKnownWriteTime": 1620475464,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1620469065042,
+    "last_content_update": 1620475465069,
     "read_only": false,
     "read_only_alternatives": []
 }
