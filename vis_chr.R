@@ -5,26 +5,6 @@ library(dplyr)
 library(readr)
 library(chromoMap)
 
-
-##### function definitions ##### 
-
-# shows how many proteins in a row come together
-belki_sosedi <- function(chr, x) {
-  o = 1;
-  for (i in 1:nrow(chr)){
-    n <- chr$Start[i + 1] - chr$End[i]
-    if (!is.na(n) && n < quantile(x, na.rm=TRUE)[2]){
-      if (o >= 4){
-        print(o)
-      }
-      o = o + 1
-    }
-    else{
-      o = 1
-    }
-  }
-}
-
 ##### input files ##### 
 new_ass <- read_excel("New assembly annotation.xlsx") 
 yusurika <- read_excel("19c15301_Proteome_yusurika_data_2019 working.xlsx", sheet = 2) 
@@ -56,6 +36,25 @@ chromoMap("chr_file.txt",  "anno_file.txt")
 proteome <-proteome[order(proteome$Start),]
 proteome <-proteome[order(proteome$Start),]
 
+##### function definitions ##### 
+
+# shows how many proteins in a row come together
+# if (o >= 4) - show only group of 4
+# quantile(x, na.rm=TRUE)[2] - change 2 to 3 to use median
+
+belki_sosedi <- function(chr, x) {
+  o = 1;
+  for (i in 1:nrow(chr)){
+    n <- chr$Start[i + 1] - chr$End[i]
+    if (!is.na(n) && n < quantile(x, na.rm=TRUE)[3]){
+      if (o >= 10)
+        print(o)
+      o = o + 1
+    }
+    else
+      o = 1
+  }
+}
 
 ##### chromosome 1 #####
 
@@ -137,26 +136,17 @@ for(i in 1:nrow(chr_4_plus)) {
   x_plus[i] = (chr_4_plus$Start[i + 1] - chr_4_plus$End[i])
 }
 
-belki_sosedi(chr_4_plus, x_plus)
-
 # summary(x_plus, na.rm=TRUE)
+belki_sosedi(chr_4_plus, x_plus)
 
 x_minus <- c()
 for(i in 1:nrow(chr_4_minus)) {
   x_minus[i] <- (chr_4_minus$Start[i + 1] - chr_4_minus$End[i])
 }
 
+belki_sosedi(chr_4_minus, x_minus)
 # summary(x_minus, na.rm=TRUE)
 
-# 25% of proteins are closer
-quantile(x_minus, na.rm=TRUE)[2]
-sum(x_minus < quantile(x_minus, na.rm=TRUE)[2], na.rm=TRUE)
-
-belki_sosedi(chr_4_minus, x_minus)
+###########
 
 
-
-
-
-
-#
