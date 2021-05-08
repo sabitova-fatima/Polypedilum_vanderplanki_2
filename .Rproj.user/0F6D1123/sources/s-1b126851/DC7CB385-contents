@@ -31,8 +31,42 @@ write.delim(anno, "anno_file.txt", col.names = FALSE, sep = "\t")
 
 chromoMap("chr_file.txt",  "anno_file.txt")
 
-##### smth else ##### 
+##### how close proteins are to each other ##### 
+
+proteome <-proteome[order(proteome$Start),]
+proteome <-proteome[order(proteome$Start),]
+
+proteome %>% filter(Strand == "+") %>% filter(`Scaffold Id` == "chr_1") -> chr_1_plus
+proteome %>% filter(Strand == "-") %>% filter(`Scaffold Id` == "chr_1") -> chr_1_minus
+
+x_plus = c()
+
+for(i in 1:nrow(chr_1_plus)) {
+  x_plus[i] = (chr_1_plus$Start[i + 1] - chr_1_plus$End[i])
+}
+
+nrow(chr_1_plus)
+
+mean(x_plus, na.rm=TRUE)
+# 13241.96
+min(x_plus, na.rm=TRUE)
+# -51577
+max(x_plus, na.rm=TRUE)
+# 474558
+
+##
+x_minus = c()
+
+for(i in 1:nrow(chr_1_minus)) {
+  x_minus[i] = (chr_1_minus$Start[i + 1] - chr_1_minus$End[i])
+}
 
 
-
+nrow(chr_1_minus)
+# 
+mean(x_minus, na.rm=TRUE)
+# 13539.53
+min(x_minus, na.rm=TRUE)
+# -58113
+max(x_minus, na.rm=TRUE)
 
