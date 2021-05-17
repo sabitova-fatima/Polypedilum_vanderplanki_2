@@ -322,7 +322,6 @@ protein_groups <- function(str, stat, treshold){
   count = 1
   o = 1
   close_genes <- c()
-  gene_groups <- list()
   for (i in 1:(nrow(str)-1)){
     if ((str$Start[i + 1] - str$End[i]) <= stat){
       count = count + 1
@@ -330,18 +329,13 @@ protein_groups <- function(str, stat, treshold){
       if (count >= treshold && (str$Start[i + 2] - str$End[i + 1]) <= stat){
         # print(count)
         close_genes <- c(close_genes, str$Transcript[i + 1])
-      }
-      else if (count >= treshold && (str$Start[i + 2] - str$End[i + 1]) > stat){
-        gene_groups[o] <- close_genes
-        o = o + 1
-        close_genes <- c()
-      }
     }
     else {
       count = 1
     }
   }
-  return (gene_groups)
+  return (close_genes)
+  }
 }
 
 # quant[3] - 50%, quant[2] - 25%
