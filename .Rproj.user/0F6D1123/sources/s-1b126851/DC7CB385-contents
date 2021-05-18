@@ -300,14 +300,6 @@ proteome %>% filter(Strand == "-") %>% filter(`Scaffold Id` == "chr_3") -> chr_3
 proteome %>% filter(Strand == "+") %>% filter(`Scaffold Id` == "chr_4") -> chr_4_plus
 proteome %>% filter(Strand == "-") %>% filter(`Scaffold Id` == "chr_4") -> chr_4_minus
 
-count_dist <- function(str){
-  distance <- c()
-  for (i in 1:nrow(str)){
-    distance[i] = str$Start[i + 1] - str$End[i]
-  }
-  return(distance)
-}
-
 # 25% белков ближе, чем на q_25 нуклеотидов
 quant <- quantile(c(count_dist(chr_1_plus),
                    count_dist(chr_1_minus),
@@ -319,79 +311,27 @@ quant <- quantile(c(count_dist(chr_1_plus),
                    count_dist(chr_4_minus)), na.rm = T)
 
 
-protein_groups <- function(str, stat, treshold){
-  count = 1
-  o = 1
-  close_genes <- c()
-  for (i in 1:(nrow(str)-1)){
-    if ((str$Start[i + 1] - str$End[i]) <= stat){
-      if (count >= treshold){
-        print(count)
-        close_genes <- c(close_genes, str$Transcript[i + 1])
-      }
-      count = count + 1
-    }
-    else {
-      count = 1
-    }
-  return (close_genes)
-  }
-}
-
-# quant[3] - 50%, quant[2] - 25%
-stat = quant[3]
-
-# number of proteins in a row
-treshold = 2
-# 
-# close_genes <- c(
-# protein_groups(chr_1_plus, stat, treshold),
-# protein_groups(chr_1_minus, stat, treshold),
-# protein_groups(chr_2_plus, stat, treshold),
-# protein_groups(chr_2_minus, stat, treshold),
-# protein_groups(chr_3_plus, stat, treshold),
-# protein_groups(chr_3_minus, stat, treshold),
-# protein_groups(chr_4_plus, stat, treshold),
-# protein_groups(chr_4_minus, stat, treshold)
-# )
-# 
-# proteome_close <- filter(proteome, Transcript %in% close_genes)
-# 
-# # необязательно, чтобы сильно экспрессировались только те гены, которые близко
-# quantile(proteome$fc, na.rm = T)
-# # 0.95289236
-# 
-# quantile(proteome_close$fc, na.rm = T)
-# 
-# ggplot(proteome, aes(x = Transcript, y = fc)) +
-#   geom_point()
-# 
-# ggplot(proteome_close, aes(x = Transcript, y = fc)) +
-#   geom_point()
-# 
-# 
-# proteome_clone <- as.data.frame(proteome)
-# proteome_clone$group <- none
-# 
-# 
-# НЕПРАВИЛЬНО
-# for (i in 1:nrow(proteome_clone)){
-#   if (proteome_clone$Transcript[i] %in% protein_groups(chr_1_plus, stat, treshold)){
-#     proteome_clone$group[i] <- "group_1"
-#   }
-# }
-# 
-# 
-# 
-
 # quant[3] - 50%, quant[2] - 25%
 stat = quant[3]
 
 # number of proteins in a row
 treshold = 5
 
+
+write_friends <- function(chr, i, count, value){
+  n = i - count
+  while (n < i)
+  {
+    chr$friends[n] <- value
+    n = n + 1
+  }
+  return (chr)
+}
+
 find_friends <- function(chr, stat, treshold){
   count = 1;
+  old_count = 1
+  value = 1
   for (i in 1:(nrow(chr)-1)){
     if (chr$Start[i + 1] - chr$End[i] <= stat)
     {
@@ -401,11 +341,36 @@ find_friends <- function(chr, stat, treshold){
     {
       count = 1
     }
-    if (count > treshold)
+    if (count >= treshold)
     {
-      print(count)
+      old_count = count
+    }
+    if (old_count >= treshold && count == 1)
+    {
+      group = paste("group", value, sep = "_")
+      chr <- write_friends(chr, i, old_count, group)
+      value = value + 1
+      old_count = 1
     }
   }
+  return (chr)
 }
 
-find_friends(chr_1_plus, stat, treshold)
+chr_1_plus$friends <- "none"
+chr_1_minus$friends <- "none"
+chr_2_plus$friends <- "none"
+chr_2_minus$friends <- "none"
+chr_3_plus$friends <- "none"
+chr_3_minus$friends <- "none"
+chr_4_plus$friends <- "none"
+chr_4_minus$friends <- "none"
+
+chr_1_plus <- find_friends(chr_1_plus, stat, treshold)
+chr_1_minus <- find_friends(chr_1_plus, stat, treshold)
+chr_2_plus <- find_friends(chr_1_plus, stat, treshold)
+chr_2_minus <- find_friends(chr_1_plus, stat, treshold)
+chr_3_plus <- find_friends(chr_1_plus, stat, treshold)
+chr_3_minus <- find_friends(chr_1_plus, stat, treshold)
+chr_4_plus <- find_friends(chr_1_plus, stat, treshold)
+chr_4_minus <- find_friends(chr_1_plus, stat, treshold)
+
