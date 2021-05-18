@@ -326,7 +326,7 @@ protein_groups <- function(str, stat, treshold){
     if ((str$Start[i + 1] - str$End[i]) <= stat){
       count = count + 1
       
-      if (count >= treshold && (str$Start[i + 2] - str$End[i + 1]) <= stat){
+      if (count >= treshold){
         # print(count)
         close_genes <- c(close_genes, str$Transcript[i + 1])
     }
@@ -374,9 +374,13 @@ proteome_clone <- as.data.frame(proteome)
 proteome_clone$group <- none
 
 
-
+НЕПРАВИЛЬНО
 for (i in 1:nrow(proteome_clone)){
   if (proteome_clone$Transcript[i] %in% protein_groups(chr_1_plus, stat, treshold)){
     proteome_clone$group[i] <- "group_1"
   }
 }
+
+
+
+
