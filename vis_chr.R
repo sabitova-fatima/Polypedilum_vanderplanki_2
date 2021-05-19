@@ -366,11 +366,68 @@ chr_4_plus$friends <- "none"
 chr_4_minus$friends <- "none"
 
 chr_1_plus <- find_friends(chr_1_plus, stat, treshold)
-chr_1_minus <- find_friends(chr_1_plus, stat, treshold)
-chr_2_plus <- find_friends(chr_1_plus, stat, treshold)
-chr_2_minus <- find_friends(chr_1_plus, stat, treshold)
-chr_3_plus <- find_friends(chr_1_plus, stat, treshold)
-chr_3_minus <- find_friends(chr_1_plus, stat, treshold)
-chr_4_plus <- find_friends(chr_1_plus, stat, treshold)
-chr_4_minus <- find_friends(chr_1_plus, stat, treshold)
+chr_1_minus <- find_friends(chr_1_minus, stat, treshold)
+chr_2_plus <- find_friends(chr_2_plus, stat, treshold)
+chr_2_minus <- find_friends(chr_2_minus, stat, treshold)
+chr_3_plus <- find_friends(chr_3_plus, stat, treshold)
+chr_3_minus <- find_friends(chr_3_minus, stat, treshold)
+chr_4_plus <- find_friends(chr_4_plus, stat, treshold)
+chr_4_minus <- find_friends(chr_4_minus, stat, treshold)
 
+mean(proteome$fc, na.rm = T)
+
+first_column <- c("value_1", "value_2", ...)
+second_column <- c("value_1", "value_2", ...)
+
+df <- data.frame(first_column, second_column)
+
+# groups fc
+chr_1_plus_g <- 
+
+for (i in 1:21)
+{
+  temp = filter(chr_1_plus, friends == paste("group", i, sep = "_"))
+  print(mean(temp$fc,  na.rm = T) >= mean(proteome$fc, na.rm = T))
+}
+
+for (i in 1:24)
+{
+  temp = filter(chr_1_minus, friends == paste("group", i, sep = "_"))
+  print(mean(temp$fc,  na.rm = T) >= mean(proteome$fc, na.rm = T))
+}
+
+for (i in 1:15)
+{
+  temp = filter(chr_2_plus, friends == paste("group", i, sep = "_"))
+  print(mean(temp$fc,  na.rm = T) >= mean(proteome$fc, na.rm = T))
+}
+
+for (i in 1:20)
+{
+  temp = filter(chr_2_minus, friends == paste("group", i, sep = "_"))
+  print(mean(temp$fc,  na.rm = T) >= mean(proteome$fc, na.rm = T))
+}
+
+for (i in 1:27)
+{
+  temp = filter(chr_3_plus, friends == paste("group", i, sep = "_"))
+  print(mean(temp$fc,  na.rm = T) >= mean(proteome$fc, na.rm = T))
+}
+
+for (i in 1:28)
+{
+  temp = filter(chr_3_minus, friends == paste("group", i, sep = "_"))
+  print(mean(temp$fc,  na.rm = T) >= mean(proteome$fc, na.rm = T))
+}
+
+for (i in 1:4)
+{
+  temp = filter(chr_4_plus, friends == paste("group", i, sep = "_"))
+  print(mean(temp$fc,  na.rm = T) >= mean(proteome$fc, na.rm = T))
+}
+
+for (i in 1:5)
+{
+  temp = filter(chr_4_minus, friends == paste("group", i, sep = "_"))
+  print(mean(temp$fc,  na.rm = T) >= mean(proteome$fc, na.rm = T))
+}
