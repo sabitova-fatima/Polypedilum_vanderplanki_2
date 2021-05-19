@@ -141,11 +141,14 @@ chromoMap("chr_file.txt",  "anno_file.txt",
           data_type = "numeric",
           plots = "scatter")
 
+# намана
 chromoMap("chr_file.txt",  "anno_file.txt",
           data_based_color_map = T,
           segment_annotation = T,
           chr_color="green",
-          data_colors = list("blue"),
+          data_colors = list("green"),
+          # anno_col = list("red"),
+          plot_color = "blue",
           data_type = "numeric",
           plots = "bar",
           ref_line = T,

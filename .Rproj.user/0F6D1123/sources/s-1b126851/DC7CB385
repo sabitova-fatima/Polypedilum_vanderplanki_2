@@ -3,7 +3,7 @@
     "path": "/cloud/project/main.R",
     "project_path": "main.R",
     "type": "r_source",
-    "hash": "0",
+    "hash": "3020242043",
     "contents": "",
     "dirty": false,
     "created": 1620464580561.0,
@@ -13,15 +13,15 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "153,0",
-        "scrollLine": "127"
+        "cursorPosition": "143,8",
+        "scrollLine": "130"
     },
-    "folds": "29|20|103|0|\n104|18|115|0|\n160|27|184|0|\n166|35|183|0|\n185|19|207|0|\n208|19|230|0|\n231|19|253|0|\n254|19|277|0|\n321|29|341|0|\n342|58|460|0|\n",
-    "lastKnownWriteTime": 1621398148,
+    "folds": "29|20|103|0|\n104|18|115|0|\n163|27|187|0|\n169|35|186|0|\n188|19|210|0|\n211|19|233|0|\n234|19|256|0|\n257|19|280|0|\n324|29|344|0|\n345|58|463|0|\n",
+    "lastKnownWriteTime": 1621398670,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1621398148279,
+    "last_content_update": 1621398670453,
     "read_only": false,
     "read_only_alternatives": []
 }
