@@ -1,10 +1,12 @@
 # install.packages("chromoMap")
+# install.packages("xlsx")
 library(readxl)
 library(tidyverse)
 library(dplyr)
 library(readr)
 library(chromoMap)
 library(caroline)
+library(xlsx)
 
 ##### input files ##### 
 new_ass <- read_excel("New assembly annotation.xlsx") 
@@ -25,12 +27,131 @@ chr <- data.frame (
   c(1, 1, 1, 1), 
   c(max(chr_1$End), max(chr_2$End), max(chr_3$End), max(chr_4$End)))
 
-anno <- proteome %>% select(Transcript, `Scaffold Id`, Start, End)
+##### cleaning NA s #####
+
+for (i in 1:length(proteome$`Abundances Scaled F5 Sample yusurika_T24`)){
+  if (is.na(proteome$`Abundances Scaled F5 Sample yusurika_T24`[i])){
+    proteome$`Abundances Scaled F5 Sample yusurika_T24`[i] = 
+      (proteome$`Abundances Scaled F6 Sample yusurika_T24`[i] +
+      proteome$`Abundances Scaled F7 Sample yusurika_T24`[i] +
+      proteome$`Abundances Scaled F8 Sample yusurika_T24`[i]) / 3
+  }
+}
+
+for (i in 1:length(proteome$`Abundances Scaled F6 Sample yusurika_T24`)){
+  if (is.na(proteome$`Abundances Scaled F6 Sample yusurika_T24`[i])){
+    proteome$`Abundances Scaled F6 Sample yusurika_T24`[i] = 
+      (proteome$`Abundances Scaled F5 Sample yusurika_T24`[i] +
+         proteome$`Abundances Scaled F7 Sample yusurika_T24`[i] +
+         proteome$`Abundances Scaled F8 Sample yusurika_T24`[i]) / 3
+  }
+}
+
+for (i in 1:length(proteome$`Abundances Scaled F7 Sample yusurika_T24`)){
+  if (is.na(proteome$`Abundances Scaled F7 Sample yusurika_T24`[i])){
+    proteome$`Abundances Scaled F7 Sample yusurika_T24`[i] = 
+      (proteome$`Abundances Scaled F6 Sample yusurika_T24`[i] +
+         proteome$`Abundances Scaled F5 Sample yusurika_T24`[i] +
+         proteome$`Abundances Scaled F8 Sample yusurika_T24`[i]) / 3
+  }
+}
+
+for (i in 1:length(proteome$`Abundances Scaled F8 Sample yusurika_T24`)){
+  if (is.na(proteome$`Abundances Scaled F8 Sample yusurika_T24`[i])){
+    proteome$`Abundances Scaled F8 Sample yusurika_T24`[i] = 
+      (proteome$`Abundances Scaled F6 Sample yusurika_T24`[i] +
+         proteome$`Abundances Scaled F7 Sample yusurika_T24`[i] +
+         proteome$`Abundances Scaled F5 Sample yusurika_T24`[i]) / 3
+  }
+}
+
+for (i in 1:length(proteome$`Abundances Scaled F1 Sample yusurika_T0`)){
+  if (is.na(proteome$`Abundances Scaled F1 Sample yusurika_T0`[i])){
+    proteome$`Abundances Scaled F1 Sample yusurika_T0`[i] = 
+      (proteome$`Abundances Scaled F2 Sample yusurika_T0`[i] +
+         proteome$`Abundances Scaled F3 Sample yusurika_T0`[i] +
+         proteome$`Abundances Scaled F4 Sample yusurika_T0`[i]) / 3
+  }
+}
+
+for (i in 1:length(proteome$`Abundances Scaled F2 Sample yusurika_T0`)){
+  if (is.na(proteome$`Abundances Scaled F2 Sample yusurika_T0`[i])){
+    proteome$`Abundances Scaled F2 Sample yusurika_T0`[i] = 
+      (proteome$`Abundances Scaled F1 Sample yusurika_T0`[i] +
+         proteome$`Abundances Scaled F3 Sample yusurika_T0`[i] +
+         proteome$`Abundances Scaled F4 Sample yusurika_T0`[i]) / 3
+  }
+}
+
+for (i in 1:length(proteome$`Abundances Scaled F3 Sample yusurika_T0`)){
+  if (is.na(proteome$`Abundances Scaled F3 Sample yusurika_T0`[i])){
+    proteome$`Abundances Scaled F3 Sample yusurika_T0`[i] = 
+      (proteome$`Abundances Scaled F2 Sample yusurika_T0`[i] +
+         proteome$`Abundances Scaled F1 Sample yusurika_T0`[i] +
+         proteome$`Abundances Scaled F4 Sample yusurika_T0`[i]) / 3
+  }
+}
+
+for (i in 1:length(proteome$`Abundances Scaled F4 Sample yusurika_T0`)){
+  if (is.na(proteome$`Abundances Scaled F4 Sample yusurika_T0`[i])){
+    proteome$`Abundances Scaled F4 Sample yusurika_T0`[i] = 
+      (proteome$`Abundances Scaled F2 Sample yusurika_T0`[i] +
+         proteome$`Abundances Scaled F3 Sample yusurika_T0`[i] +
+         proteome$`Abundances Scaled F1 Sample yusurika_T0`[i]) / 3
+  }
+}
+
+
+##### creating fc #####
+
+proteome$t24_mean <- (proteome$`Abundances Scaled F5 Sample yusurika_T24` + proteome$`Abundances Scaled F6 Sample yusurika_T24` +
+  proteome$`Abundances Scaled F7 Sample yusurika_T24` + proteome$`Abundances Scaled F8 Sample yusurika_T24`) / 4
+
+
+proteome$t0_mean <- (proteome$`Abundances Scaled F1 Sample yusurika_T0` + proteome$`Abundances Scaled F2 Sample yusurika_T0` +
+                        proteome$`Abundances Scaled F3 Sample yusurika_T0` + proteome$`Abundances Scaled F4 Sample yusurika_T0`) / 4
+
+proteome$fc <- proteome$t24_mean / proteome$t0_mean
+
+
+##### красивые хромосомки ##### 
+
+anno <- proteome %>% select(Transcript, `Scaffold Id`, Start, End, fc)
 
 write.delim(chr, "chr_file.txt", col.names = FALSE, sep = "\t")
 write.delim(anno, "anno_file.txt", col.names = FALSE, sep = "\t")
 
 chromoMap("chr_file.txt",  "anno_file.txt")
+chromoMap("chr_file.txt",  "anno_file.txt", segment_annotation = T)
+
+
+chromoMap("chr_file.txt",  "anno_file.txt",
+          labels=T,
+          label_angle = -60,
+          chr_length = 8,
+          chr_width = 8,
+          canvas_width = 1000)
+
+chromoMap("chr_file.txt",  "anno_file.txt",
+          data_type = "numeric",
+          plots = "bar")
+
+chromoMap("chr_file.txt",  "anno_file.txt",
+          data_based_color_map = T,
+          data_type = "numeric",
+          plots = "scatter")
+
+chromoMap("chr_file.txt",  "anno_file.txt",
+          data_based_color_map = T,
+          segment_annotation = T,
+          chr_color="green",
+          data_colors = list("blue"),
+          data_type = "numeric",
+          plots = "bar",
+          ref_line = T,
+          refl_pos = 15,
+          heat_map = F)
+
 
 ##### how close proteins are to each other ##### 
 
@@ -155,97 +276,6 @@ belki_sosedi(chr_4_minus, x_minus)
 
 
 
-##### cleaning NA s #####
-
-for (i in 1:length(proteome$`Abundances Scaled F5 Sample yusurika_T24`)){
-  if (is.na(proteome$`Abundances Scaled F5 Sample yusurika_T24`[i])){
-    proteome$`Abundances Scaled F5 Sample yusurika_T24`[i] = 
-      (proteome$`Abundances Scaled F6 Sample yusurika_T24`[i] +
-      proteome$`Abundances Scaled F7 Sample yusurika_T24`[i] +
-      proteome$`Abundances Scaled F8 Sample yusurika_T24`[i]) / 3
-  }
-}
-
-for (i in 1:length(proteome$`Abundances Scaled F6 Sample yusurika_T24`)){
-  if (is.na(proteome$`Abundances Scaled F6 Sample yusurika_T24`[i])){
-    proteome$`Abundances Scaled F6 Sample yusurika_T24`[i] = 
-      (proteome$`Abundances Scaled F5 Sample yusurika_T24`[i] +
-         proteome$`Abundances Scaled F7 Sample yusurika_T24`[i] +
-         proteome$`Abundances Scaled F8 Sample yusurika_T24`[i]) / 3
-  }
-}
-
-for (i in 1:length(proteome$`Abundances Scaled F7 Sample yusurika_T24`)){
-  if (is.na(proteome$`Abundances Scaled F7 Sample yusurika_T24`[i])){
-    proteome$`Abundances Scaled F7 Sample yusurika_T24`[i] = 
-      (proteome$`Abundances Scaled F6 Sample yusurika_T24`[i] +
-         proteome$`Abundances Scaled F5 Sample yusurika_T24`[i] +
-         proteome$`Abundances Scaled F8 Sample yusurika_T24`[i]) / 3
-  }
-}
-
-for (i in 1:length(proteome$`Abundances Scaled F8 Sample yusurika_T24`)){
-  if (is.na(proteome$`Abundances Scaled F8 Sample yusurika_T24`[i])){
-    proteome$`Abundances Scaled F8 Sample yusurika_T24`[i] = 
-      (proteome$`Abundances Scaled F6 Sample yusurika_T24`[i] +
-         proteome$`Abundances Scaled F7 Sample yusurika_T24`[i] +
-         proteome$`Abundances Scaled F5 Sample yusurika_T24`[i]) / 3
-  }
-}
-
-
-
-
-
-for (i in 1:length(proteome$`Abundances Scaled F1 Sample yusurika_T0`)){
-  if (is.na(proteome$`Abundances Scaled F1 Sample yusurika_T0`[i])){
-    proteome$`Abundances Scaled F1 Sample yusurika_T0`[i] = 
-      (proteome$`Abundances Scaled F2 Sample yusurika_T0`[i] +
-         proteome$`Abundances Scaled F3 Sample yusurika_T0`[i] +
-         proteome$`Abundances Scaled F4 Sample yusurika_T0`[i]) / 3
-  }
-}
-
-for (i in 1:length(proteome$`Abundances Scaled F2 Sample yusurika_T0`)){
-  if (is.na(proteome$`Abundances Scaled F2 Sample yusurika_T0`[i])){
-    proteome$`Abundances Scaled F2 Sample yusurika_T0`[i] = 
-      (proteome$`Abundances Scaled F1 Sample yusurika_T0`[i] +
-         proteome$`Abundances Scaled F3 Sample yusurika_T0`[i] +
-         proteome$`Abundances Scaled F4 Sample yusurika_T0`[i]) / 3
-  }
-}
-
-for (i in 1:length(proteome$`Abundances Scaled F3 Sample yusurika_T0`)){
-  if (is.na(proteome$`Abundances Scaled F3 Sample yusurika_T0`[i])){
-    proteome$`Abundances Scaled F3 Sample yusurika_T0`[i] = 
-      (proteome$`Abundances Scaled F2 Sample yusurika_T0`[i] +
-         proteome$`Abundances Scaled F1 Sample yusurika_T0`[i] +
-         proteome$`Abundances Scaled F4 Sample yusurika_T0`[i]) / 3
-  }
-}
-
-for (i in 1:length(proteome$`Abundances Scaled F4 Sample yusurika_T0`)){
-  if (is.na(proteome$`Abundances Scaled F4 Sample yusurika_T0`[i])){
-    proteome$`Abundances Scaled F4 Sample yusurika_T0`[i] = 
-      (proteome$`Abundances Scaled F2 Sample yusurika_T0`[i] +
-         proteome$`Abundances Scaled F3 Sample yusurika_T0`[i] +
-         proteome$`Abundances Scaled F1 Sample yusurika_T0`[i]) / 3
-  }
-}
-
-
-##### creating fc #####
-
-proteome$t24_mean <- (proteome$`Abundances Scaled F5 Sample yusurika_T24` + proteome$`Abundances Scaled F6 Sample yusurika_T24` +
-  proteome$`Abundances Scaled F7 Sample yusurika_T24` + proteome$`Abundances Scaled F8 Sample yusurika_T24`) / 4
-
-
-proteome$t0_mean <- (proteome$`Abundances Scaled F1 Sample yusurika_T0` + proteome$`Abundances Scaled F2 Sample yusurika_T0` +
-                        proteome$`Abundances Scaled F3 Sample yusurika_T0` + proteome$`Abundances Scaled F4 Sample yusurika_T0`) / 4
-
-proteome$fc <- proteome$t24_mean / proteome$t0_mean
-
-
 #####  plots   #####
 
 
@@ -310,12 +340,13 @@ quant <- quantile(c(count_dist(chr_1_plus),
                    count_dist(chr_4_plus),
                    count_dist(chr_4_minus)), na.rm = T)
 
+###### менять, чтобы изменить условия отбора групп белков #####
 
 # quant[3] - 50%, quant[2] - 25%
 stat = quant[3]
 
 # number of proteins in a row
-treshold = 5
+treshold = 7
 
 write_friends <- function(chr, i, count, value){
   n = i - count
@@ -416,8 +447,14 @@ proteome_bind <- bind_rows(
           chr_4_plus,
           chr_4_minus)
 
+# df в котором только белки, разделенные на группы (= стоящие близкими группами) 
 proteome_groups_only <- filter(proteome_bind, mean_group_fc != 0)
 
+# df в котором только белки, разделенные на группы (= стоящие близкими группами) 
+# и изменение которых больше среднего изменения по протеому
+proteome_meaningful<- filter(proteome_groups_only, mean_group_fc > 
+                               mean(proteome$fc, na.rm = T))
 
-
+write.xlsx(proteome_meaningful, "proteome_meaningful.xlsx", sheetName="Sheet1", 
+           col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
 
