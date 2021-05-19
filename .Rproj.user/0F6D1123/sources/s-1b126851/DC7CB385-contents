@@ -366,6 +366,8 @@ calc_mean_fc <- function(chr, start, stop)
   return (chr)
 }
 
+# создаем и зануляем колонки
+
 chr_1_plus$friends <- "none"
 chr_1_minus$friends <- "none"
 chr_2_plus$friends <- "none"
@@ -395,7 +397,7 @@ chr_4_plus <- find_friends(chr_4_plus, stat, treshold)
 chr_4_minus <- find_friends(chr_4_minus, stat, treshold)
 
 # добавляем mean изменение конц белка для каждой группы
-chr_1_plus <- calc_mean_fc(chr_1_plus, 1, 21)
+chr_1_plus <- calc_mean_fc(chr_1_plus, 1, 21) # числа взяты по количеству групп
 chr_1_minus <- calc_mean_fc(chr_1_minus, 1, 24)
 chr_2_plus <- calc_mean_fc(chr_2_plus, 1, 15)
 chr_2_minus <- calc_mean_fc(chr_2_minus, 1, 20)
