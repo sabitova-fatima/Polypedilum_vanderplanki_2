@@ -406,4 +406,18 @@ chr_3_minus <- calc_mean_fc(chr_3_minus, 1, 28)
 chr_4_plus <- calc_mean_fc(chr_4_plus, 1, 4)
 chr_4_minus <- calc_mean_fc(chr_4_minus, 1, 5)
 
+proteome_bind <- bind_rows(
+          chr_1_plus, 
+          chr_1_minus,
+          chr_2_plus,
+          chr_2_minus,
+          chr_3_plus,
+          chr_3_minus,
+          chr_4_plus,
+          chr_4_minus)
+
+proteome_groups_only <- filter(proteome_bind, mean_group_fc != 0)
+
+
+
 
