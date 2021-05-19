@@ -15,18 +15,6 @@ yusurika <- read_excel("19c15301_Proteome_yusurika_data_2019 working.xlsx", shee
 names(yusurika)[1] = "Transcript"
 proteome <- left_join(yusurika, new_ass, by = "Transcript")
 
-##### visualizing chromosomes ##### 
-
-chr_1 <- filter(proteome, `Scaffold Id` == "chr_1")
-chr_2 <- filter(proteome, `Scaffold Id` == "chr_2")
-chr_3 <- filter(proteome, `Scaffold Id` == "chr_3")
-chr_4 <- filter(proteome, `Scaffold Id` == "chr_4")
-
-chr <- data.frame (
-  c("chr_1", "chr_2", "chr_3", "chr_4"), 
-  c(1, 1, 1, 1), 
-  c(max(chr_1$End), max(chr_2$End), max(chr_3$End), max(chr_4$End)))
-
 ##### cleaning NA s #####
 
 for (i in 1:length(proteome$`Abundances Scaled F5 Sample yusurika_T24`)){
@@ -105,19 +93,32 @@ for (i in 1:length(proteome$`Abundances Scaled F4 Sample yusurika_T0`)){
 ##### creating fc #####
 
 proteome$t24_mean <- (proteome$`Abundances Scaled F5 Sample yusurika_T24` + proteome$`Abundances Scaled F6 Sample yusurika_T24` +
-  proteome$`Abundances Scaled F7 Sample yusurika_T24` + proteome$`Abundances Scaled F8 Sample yusurika_T24`) / 4
-
-
+proteome$`Abundances Scaled F7 Sample yusurika_T24` + proteome$`Abundances Scaled F8 Sample yusurika_T24`) / 4
 proteome$t0_mean <- (proteome$`Abundances Scaled F1 Sample yusurika_T0` + proteome$`Abundances Scaled F2 Sample yusurika_T0` +
                         proteome$`Abundances Scaled F3 Sample yusurika_T0` + proteome$`Abundances Scaled F4 Sample yusurika_T0`) / 4
-
 proteome$fc <- proteome$t24_mean / proteome$t0_mean
 
 
-##### красивые хромосомки ##### 
+##### if false #####
+if (FALSE) {
 
-anno <- proteome %>% select(Transcript, `Scaffold Id`, Start, End, fc)
+##### visualizing chromosomes ##### 
 
+chr_1 <- filter(proteome, `Scaffold Id` == "chr_1")
+chr_2 <- filter(proteome, `Scaffold Id` == "chr_2")
+chr_3 <- filter(proteome, `Scaffold Id` == "chr_3")
+chr_4 <- filter(proteome, `Scaffold Id` == "chr_4")
+
+chr <- data.frame (
+  c("chr_1", "chr_2", "chr_3", "chr_4"), 
+  c(1, 1, 1, 1), 
+  c(max(chr_1$End), max(chr_2$End), max(chr_3$End), max(chr_4$End)))
+
+# все белки
+# anno <- proteome %>% select(Transcript, `Scaffold Id`, Start, End, fc)
+
+# только те белки, которые группами
+anno <- proteome_meaningful %>% select(Transcript, `Scaffold Id`, Start, End, friends)
 write.delim(chr, "chr_file.txt", col.names = FALSE, sep = "\t")
 write.delim(anno, "anno_file.txt", col.names = FALSE, sep = "\t")
 
@@ -129,16 +130,16 @@ chromoMap("chr_file.txt",  "anno_file.txt",
           labels=T,
           label_angle = -60,
           chr_length = 8,
-          chr_width = 8,
+          chr_width = 10,
           canvas_width = 1000)
 
 chromoMap("chr_file.txt",  "anno_file.txt",
-          data_type = "numeric",
+          data_type = "categorical",
           plots = "bar")
 
 chromoMap("chr_file.txt",  "anno_file.txt",
           data_based_color_map = T,
-          data_type = "numeric",
+          data_type = "categorical",
           plots = "scatter")
 
 # намана
@@ -343,13 +344,13 @@ quant <- quantile(c(count_dist(chr_1_plus),
                    count_dist(chr_4_plus),
                    count_dist(chr_4_minus)), na.rm = T)
 
-###### менять, чтобы изменить условия отбора групп белков #####
+# менять, чтобы изменить условия отбора групп белков
 
 # quant[3] - 50%, quant[2] - 25%
 stat = quant[3]
 
 # number of proteins in a row
-treshold = 7
+treshold = 5
 
 write_friends <- function(chr, i, count, value){
   n = i - count
@@ -431,7 +432,7 @@ chr_4_plus <- find_friends(chr_4_plus, stat, treshold)
 chr_4_minus <- find_friends(chr_4_minus, stat, treshold)
 
 # добавляем mean изменение конц белка для каждой группы
-chr_1_plus <- calc_mean_fc(chr_1_plus, 1, 21) # числа взяты по количеству групп
+chr_1_plus <- calc_mean_fc(chr_1_plus, 1, 21) # числа взяты по количеству групп ???
 chr_1_minus <- calc_mean_fc(chr_1_minus, 1, 24)
 chr_2_plus <- calc_mean_fc(chr_2_plus, 1, 15)
 chr_2_minus <- calc_mean_fc(chr_2_minus, 1, 20)
@@ -439,6 +440,8 @@ chr_3_plus <- calc_mean_fc(chr_3_plus, 1, 27)
 chr_3_minus <- calc_mean_fc(chr_3_minus, 1, 28)
 chr_4_plus <- calc_mean_fc(chr_4_plus, 1, 4)
 chr_4_minus <- calc_mean_fc(chr_4_minus, 1, 5)
+
+7 + 7 + 3 + 4 + 11 + 7 + 1 + 2
 
 proteome_bind <- bind_rows(
           chr_1_plus, 
@@ -460,4 +463,25 @@ proteome_meaningful<- filter(proteome_groups_only, mean_group_fc >
 
 write.xlsx(proteome_meaningful, "proteome_meaningful.xlsx", sheetName="Sheet1", 
            col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
+}
+##### сравнение с генами #####
 
+ncomms <- read_excel("ncomms (1).xlsx") 
+
+ # proteome$fc <- proteome$t24_mean / proteome$t0_mean
+
+names(new_ass)[8] <- "Genes"
+names(ncomms)[1] <- "Genes"
+genome <- left_join(ncomms, new_ass, by = "Genes")
+
+proteome_genome <- inner_join(proteome, genome, by = "Transcript")
+proteome_genome$fc_gene <- proteome_genome$`RPKM (PvD0` / proteome_genome$`RPKM (PvD24)`
+
+mean(abs(proteome_genome$fc_gene - proteome_genome$fc), na.rm = T)
+mean((proteome_genome$fc_gene - proteome_genome$fc), na.rm = T)
+# в среднем изменение гена отличается от изменения его белка на 50%
+
+temp <- filter(proteome_genome, abs(fc_gene - fc) > 5)
+
+write.xlsx(temp, "5_times_changed_genes.xlsx", sheetName="Sheet1", 
+           col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
