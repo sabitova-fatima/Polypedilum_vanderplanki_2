@@ -1,5 +1,5 @@
-# install.packages("chromoMap")
-# install.packages("xlsx")
+setwd("/cloud/project/Polypedilum_vanderplanki_2")
+
 library(readxl)
 library(tidyverse)
 library(dplyr)
