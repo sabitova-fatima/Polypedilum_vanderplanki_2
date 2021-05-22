@@ -1,13 +1,13 @@
 import pandas as pd
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 
-proteome = pd.read_csv('prot (2).csv')
+proteome = pd.read_csv('prot (3).csv')
 
 # print(len(proteome))
 
 # analyzed_seq = ProteinAnalysis(str("NGEPRVGSLGRAFYSAPIQIWDNTTGTVASFATSFT"))
 # print(analyzed_seq.molecular_weight())
-print(analyzed_seq.gravy())
+# print(analyzed_seq.gravy())
 # print(analyzed_seq.count_amino_acids())
 # print(analyzed_seq.secondary_structure_fraction())
 
