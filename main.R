@@ -1,8 +1,11 @@
+
 # install.packages("chromoMap")
 # install.packages("xlsx")
 # install.packages("RecordLinkage")
 # install.packages("Bioconductor")
-library(RecordLinkage)
+# library(RecordLinkage)
+# setwd("/cloud/project/Polypedilum_vanderplanki_2")
+
 library(readxl)
 library(tidyverse)
 library(dplyr)
@@ -519,7 +522,8 @@ temp <- filter(proteome_genome, abs(fc_gene - fc) > 5)
 write.xlsx(temp, "5_times_changed_genes.xlsx", sheetName="Sheet1", 
            col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
 
-
+write.xlsx(proteome, "proteome.xlsx", sheetName="Sheet1", 
+           col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
 
 proteome$Protein[1]
 proteome$Protein[2]
@@ -551,4 +555,18 @@ levenshteinSim_1[levenshteinSim_1 >= 0.3 && levenshteinSim_1 < 1]
 # 0%       25%       50%       75%      100% 
 # 0.0000000 0.1700137 0.2000000 0.2189781 1.0000000
 
+
+which(str_detect(proteome$Protein, "X", negate = FALSE))
+
+proteome_2 <- filter(proteome, !str_detect(proteome$Protein, "X", negate = FALSE))
+# proteome_3 <- filter(proteome_2, is.string(proteome$Protein))
+write.csv(proteome_2, "prot.csv")
+
+for (i in 1:nrow(proteome_2))
+{
+  if (!is.string(proteome$Protein[i]))
+  {
+    print(i)
+  }
+}
 
