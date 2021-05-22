@@ -5,7 +5,7 @@ proteome = pd.read_csv('prot (2).csv')
 
 # print(len(proteome))
 
-analyzed_seq = ProteinAnalysis(str("NGEPRVGSLGRAFYSAPIQIWDNTTGTVASFATSFT"))
+# analyzed_seq = ProteinAnalysis(str("NGEPRVGSLGRAFYSAPIQIWDNTTGTVASFATSFT"))
 # print(analyzed_seq.molecular_weight())
 print(analyzed_seq.gravy())
 # print(analyzed_seq.count_amino_acids())
