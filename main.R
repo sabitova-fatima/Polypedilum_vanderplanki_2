@@ -1,5 +1,8 @@
-setwd("/cloud/project/Polypedilum_vanderplanki_2")
-
+# install.packages("chromoMap")
+# install.packages("xlsx")
+# install.packages("RecordLinkage")
+# install.packages("Bioconductor")
+library(RecordLinkage)
 library(readxl)
 library(tidyverse)
 library(dplyr)
@@ -99,9 +102,6 @@ proteome$t0_mean <- (proteome$`Abundances Scaled F1 Sample yusurika_T0` + proteo
 proteome$fc <- proteome$t24_mean / proteome$t0_mean
 
 
-##### if false #####
-if (FALSE) {
-
 ##### visualizing chromosomes ##### 
 
 chr_1 <- filter(proteome, `Scaffold Id` == "chr_1")
@@ -115,10 +115,10 @@ chr <- data.frame (
   c(max(chr_1$End), max(chr_2$End), max(chr_3$End), max(chr_4$End)))
 
 # все белки
-# anno <- proteome %>% select(Transcript, `Scaffold Id`, Start, End, fc)
+# anno <- proteome_meaningful %>% select(Transcript, `Scaffold Id`, Start, End, fc)
 
 # только те белки, которые группами
-anno <- proteome_meaningful %>% select(Transcript, `Scaffold Id`, Start, End, friends)
+anno <- proteome %>% select(Transcript, `Scaffold Id`, Start, End, fc)
 write.delim(chr, "chr_file.txt", col.names = FALSE, sep = "\t")
 write.delim(anno, "anno_file.txt", col.names = FALSE, sep = "\t")
 
@@ -149,7 +149,7 @@ chromoMap("chr_file.txt",  "anno_file.txt",
           chr_color="green",
           data_colors = list("green"),
           # anno_col = list("red"),
-          plot_color = "blue",
+          plot_color = "light blue",
           data_type = "numeric",
           plots = "bar",
           ref_line = T,
@@ -172,7 +172,7 @@ belki_sosedi <- function(chr1, x) {
   o = 1;
   chr$close <- 0
   chr <- as.data.frame(chr1)
-  for (i in 1:nrow(chr)){
+  for (i in 1:nrow(chr)-1){
     n <- chr$Start[i + 1] - chr$End[i]
     # n - расстояние от одного белка до другого
     if (!is.na(n) && n <= quantile(x, na.rm=TRUE)[3]){
@@ -305,18 +305,18 @@ for (i in 1:length(proteome_copy$big_fc)){
   }
 }
 
-10 - 15
-9 - 16
-8 - 20
-7 - 21
-6 - 28
-5 - 33
-4 - 44
-3 - 57
-2 - 107
-1.5 - 227
-1 - 1705
-all - 4329
+# 10 - 15
+# 9 - 16
+# 8 - 20
+# 7 - 21
+# 6 - 28
+# 5 - 33
+# 4 - 44
+# 3 - 57
+# 2 - 107
+# 1.5 - 227
+# 1 - 1705
+# all - 4329
 
 proteome_only_big <- filter(proteome_copy, big_fc == 1)
 
@@ -333,6 +333,14 @@ proteome %>% filter(Strand == "+") %>% filter(`Scaffold Id` == "chr_3") -> chr_3
 proteome %>% filter(Strand == "-") %>% filter(`Scaffold Id` == "chr_3") -> chr_3_minus
 proteome %>% filter(Strand == "+") %>% filter(`Scaffold Id` == "chr_4") -> chr_4_plus
 proteome %>% filter(Strand == "-") %>% filter(`Scaffold Id` == "chr_4") -> chr_4_minus
+
+count_dist <- function(str){
+  distance <- c()
+  for (i in 1:nrow(str)){
+    distance[i] = str$Start[i + 1] - str$End[i]
+  }
+  return(distance)
+}
 
 # 25% белков ближе, чем на q_25 нуклеотидов
 quant <- quantile(c(count_dist(chr_1_plus),
@@ -463,12 +471,10 @@ proteome_meaningful<- filter(proteome_groups_only, mean_group_fc >
 
 write.xlsx(proteome_meaningful, "proteome_meaningful.xlsx", sheetName="Sheet1", 
            col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
-}
+
 ##### сравнение с генами #####
 
 ncomms <- read_excel("ncomms (1).xlsx") 
-
- # proteome$fc <- proteome$t24_mean / proteome$t0_mean
 
 names(new_ass)[8] <- "Genes"
 names(ncomms)[1] <- "Genes"
@@ -476,6 +482,33 @@ genome <- left_join(ncomms, new_ass, by = "Genes")
 
 proteome_genome <- inner_join(proteome, genome, by = "Transcript")
 proteome_genome$fc_gene <- proteome_genome$`RPKM (PvD0` / proteome_genome$`RPKM (PvD24)`
+
+proteome_genome  %>% filter(fc < 10) -> proteome_genome_2
+
+p <- ggplot(proteome_genome_2, aes(x=fc, y=fc_gene))
+
+p + geom_jitter(size=0.5, color = "dark blue") +
+labs( x = "Изменение концентрации белка", 
+      y = "Изменение экспрессии гена",
+      title ="Зависимость концентрации белка от экспрессии его гена",
+      subtitle ="при индукции ангидробиоза") +
+      theme_bw()
+
+
+proteome_genome_2 <- select(proteome_genome_2, fc, fc_gene)
+
+boxplot(proteome_genome_2,
+        xlab = "Кратность изменения",
+        main = "Изменение концентрации белков и экспрессии 
+        их генов при индукции ангидробиоза",
+        col = c("steelblue4", "violetred3"), horizontal = TRUE,
+        las = 2, 
+        log10="y",
+        names = c("Белки",
+                  "Гены"))
+
+# удалено несколько крайних значений
+
 
 mean(abs(proteome_genome$fc_gene - proteome_genome$fc), na.rm = T)
 mean((proteome_genome$fc_gene - proteome_genome$fc), na.rm = T)
@@ -485,3 +518,37 @@ temp <- filter(proteome_genome, abs(fc_gene - fc) > 5)
 
 write.xlsx(temp, "5_times_changed_genes.xlsx", sheetName="Sheet1", 
            col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
+
+
+
+proteome$Protein[1]
+proteome$Protein[2]
+
+##### поиск схожих белков #####
+
+levenshteinSim_1 <- 0 * nrow(proteome) * nrow(proteome)
+
+df <- data.frame(first_column, second_column)
+
+
+proteome_filtered <- filter(proteome, fc > 2)
+
+# 4490
+# 20160100
+max(levenshteinSim_1)
+which(levenshteinSim_1 == max(levenshteinSim_1))
+
+for (j in 2:nrow(proteome_filtered))
+{
+  for(i in 2:nrow(proteome_filtered))
+  {
+    levenshteinSim_1[j * i] <- levenshteinSim(proteome_filtered$Protein[j], proteome_filtered$Protein[i])
+  }
+}
+
+levenshteinSim_1[levenshteinSim_1 >= 0.3 && levenshteinSim_1 < 1]
+# 
+# 0%       25%       50%       75%      100% 
+# 0.0000000 0.1700137 0.2000000 0.2189781 1.0000000
+
+
