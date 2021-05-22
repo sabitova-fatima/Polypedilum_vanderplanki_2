@@ -6,6 +6,7 @@
 # library(RecordLinkage)
 # setwd("/cloud/project/Polypedilum_vanderplanki_2")
 
+library(RecordLinkage)
 library(readxl)
 library(tidyverse)
 library(dplyr)
@@ -556,6 +557,7 @@ levenshteinSim_1[levenshteinSim_1 >= 0.3 && levenshteinSim_1 < 1]
 # 0.0000000 0.1700137 0.2000000 0.2189781 1.0000000
 
 
+<<<<<<< HEAD
 which(str_detect(proteome$Protein, "X", negate = FALSE))
 
 proteome_2 <- filter(proteome, !str_detect(proteome$Protein, "X", negate = FALSE))
@@ -570,3 +572,5 @@ for (i in 1:nrow(proteome_2))
   }
 }
 
+=======
+>>>>>>> 063a35c8c8a54a76fcefa007ee9f69707f827df0
