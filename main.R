@@ -1,12 +1,14 @@
 
-# install.packages("chromoMap")
+
+
+install.packages("chromoMap")
 # install.packages("xlsx")
 # install.packages("RecordLinkage")
 # install.packages("Bioconductor")
 # library(RecordLinkage)
 # setwd("/cloud/project/Polypedilum_vanderplanki_2")
 
-library(RecordLinkage)
+# library(RecordLinkage)
 library(readxl)
 library(tidyverse)
 library(dplyr)
@@ -105,60 +107,60 @@ proteome$t0_mean <- (proteome$`Abundances Scaled F1 Sample yusurika_T0` + proteo
                         proteome$`Abundances Scaled F3 Sample yusurika_T0` + proteome$`Abundances Scaled F4 Sample yusurika_T0`) / 4
 proteome$fc <- proteome$t24_mean / proteome$t0_mean
 
-
-##### visualizing chromosomes ##### 
-
-chr_1 <- filter(proteome, `Scaffold Id` == "chr_1")
-chr_2 <- filter(proteome, `Scaffold Id` == "chr_2")
-chr_3 <- filter(proteome, `Scaffold Id` == "chr_3")
-chr_4 <- filter(proteome, `Scaffold Id` == "chr_4")
-
-chr <- data.frame (
-  c("chr_1", "chr_2", "chr_3", "chr_4"), 
-  c(1, 1, 1, 1), 
-  c(max(chr_1$End), max(chr_2$End), max(chr_3$End), max(chr_4$End)))
-
-# все белки
-# anno <- proteome_meaningful %>% select(Transcript, `Scaffold Id`, Start, End, fc)
-
-# только те белки, которые группами
-anno <- proteome %>% select(Transcript, `Scaffold Id`, Start, End, fc)
-write.delim(chr, "chr_file.txt", col.names = FALSE, sep = "\t")
-write.delim(anno, "anno_file.txt", col.names = FALSE, sep = "\t")
-
-chromoMap("chr_file.txt",  "anno_file.txt")
-chromoMap("chr_file.txt",  "anno_file.txt", segment_annotation = T)
-
-
-chromoMap("chr_file.txt",  "anno_file.txt",
-          labels=T,
-          label_angle = -60,
-          chr_length = 8,
-          chr_width = 10,
-          canvas_width = 1000)
-
-chromoMap("chr_file.txt",  "anno_file.txt",
-          data_type = "categorical",
-          plots = "bar")
-
-chromoMap("chr_file.txt",  "anno_file.txt",
-          data_based_color_map = T,
-          data_type = "categorical",
-          plots = "scatter")
-
-# намана
-chromoMap("chr_file.txt",  "anno_file.txt",
-          data_based_color_map = T,
-          segment_annotation = T,
-          chr_color="green",
-          data_colors = list("green"),
-          # anno_col = list("red"),
-          plot_color = "light blue",
-          data_type = "numeric",
-          plots = "bar",
-          ref_line = T,
-          refl_pos = 15,
-          heat_map = F)
+# 
+# ##### visualizing chromosomes ##### 
+# 
+# chr_1 <- filter(proteome, `Scaffold Id` == "chr_1")
+# chr_2 <- filter(proteome, `Scaffold Id` == "chr_2")
+# chr_3 <- filter(proteome, `Scaffold Id` == "chr_3")
+# chr_4 <- filter(proteome, `Scaffold Id` == "chr_4")
+# 
+# chr <- data.frame (
+#   c("chr_1", "chr_2", "chr_3", "chr_4"), 
+#   c(1, 1, 1, 1), 
+#   c(max(chr_1$End), max(chr_2$End), max(chr_3$End), max(chr_4$End)))
+# 
+# # все белки
+# # anno <- proteome_meaningful %>% select(Transcript, `Scaffold Id`, Start, End, fc)
+# 
+# # только те белки, которые группами
+# anno <- proteome %>% select(Transcript, `Scaffold Id`, Start, End, fc)
+# write.delim(chr, "chr_file.txt", col.names = FALSE, sep = "\t")
+# write.delim(anno, "anno_file.txt", col.names = FALSE, sep = "\t")
+# 
+# chromoMap("chr_file.txt",  "anno_file.txt")
+# chromoMap("chr_file.txt",  "anno_file.txt", segment_annotation = T)
+# 
+# 
+# chromoMap("chr_file.txt",  "anno_file.txt",
+#           labels=T,
+#           label_angle = -60,
+#           chr_length = 8,
+#           chr_width = 10,
+#           canvas_width = 1000)
+# 
+# chromoMap("chr_file.txt",  "anno_file.txt",
+#           data_type = "categorical",
+#           plots = "bar")
+# 
+# chromoMap("chr_file.txt",  "anno_file.txt",
+#           data_based_color_map = T,
+#           data_type = "categorical",
+#           plots = "scatter")
+# 
+# # намана
+# chromoMap("chr_file.txt",  "anno_file.txt",
+#           data_based_color_map = T,
+#           segment_annotation = T,
+#           chr_color="green",
+#           data_colors = list("green"),
+#           # anno_col = list("red"),
+#           plot_color = "light blue",
+#           data_type = "numeric",
+#           plots = "bar",
+#           ref_line = T,
+#           refl_pos = 15,
+#           heat_map = F)
 
 
 ##### how close proteins are to each other ##### 
@@ -473,8 +475,8 @@ proteome_groups_only <- filter(proteome_bind, mean_group_fc != 0)
 proteome_meaningful<- filter(proteome_groups_only, mean_group_fc > 
                                mean(proteome$fc, na.rm = T))
 
-write.xlsx(proteome_meaningful, "proteome_meaningful.xlsx", sheetName="Sheet1", 
-           col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
+# write.xlsx(proteome_meaningful, "proteome_meaningful.xlsx", sheetName="Sheet1", 
+#            col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
 
 ##### сравнение с генами #####
 
@@ -557,7 +559,6 @@ levenshteinSim_1[levenshteinSim_1 >= 0.3 && levenshteinSim_1 < 1]
 # 0.0000000 0.1700137 0.2000000 0.2189781 1.0000000
 
 
-<<<<<<< HEAD
 which(str_detect(proteome$Protein, "X", negate = FALSE))
 
 proteome_2 <- filter(proteome, !str_detect(proteome$Protein, "X", negate = FALSE))
@@ -572,5 +573,61 @@ for (i in 1:nrow(proteome_2))
   }
 }
 
-=======
->>>>>>> 063a35c8c8a54a76fcefa007ee9f69707f827df0
+##### plots from python #####
+
+from_python <- read.csv("proteome_from_python.csv")
+view(from_python)
+
+from_python <- filter(from_python, molecular_weight < 750000)
+# выкинули два крайниз значения 
+
+p <- ggplot(from_python, aes(x=gravy, y=fc))
+p + geom_jitter(size=0.5, color = "dark blue") +
+  labs( x = "значение GRAVY", 
+        y = "Изменение концентрации белка",
+        title ="Зависимость концентрации белка от значения GRAVY",
+        subtitle ="при индукции ангидробиоза") +
+  theme_bw() + 
+  scale_y_log10() 
+
+p <- ggplot(from_python, aes(x=molecular_weight, y=fc))
+p + geom_jitter(size=0.5, color = "dark blue") +
+  labs( x = "Молекулярная масса белка", 
+        y = "Изменение концентрации белка",
+        title ="Зависимость изменения концентрации белка\nот его молекулярной массы",
+        subtitle ="при индукции ангидробиоза") +
+  theme_bw() +
+  scale_y_log10() +
+  scale_x_log10()
+
+cor(data$log_income, data$wfood, method = "pearson")
+
+
+# cor(data$log_income, data$wfood, method = "pearson")
+
+from_python <- filter(from_python, is.na(from_python$fc) != T)
+from_python <- filter(from_python, is.na(from_python$gravy) != T)
+from_python <- filter(from_python, is.na(from_python$molecular_weight) != T)
+proteome_genome_2 <- filter (proteome_genome_2, is.na(proteome_genome_2$fc_gene) != T)
+proteome_genome_2 <- filter (proteome_genome_2, is.na(proteome_genome_2$fc) != T)
+
+cor(from_python$fc, from_python$molecular_weight, method = "spearman")
+cor(proteome_genome_2$fc, proteome_genome_2$fc_gene, method = "pearson")
+
+from_python <- filter(from_python, from_python$fc > 10)
+cor(from_python$fc, from_python$gravy, method = "pearson")
+
+p8 <- ggplot(proteome_genome_2) + 
+  geom_density(aes(x = fc), fill = "steelblue4", alpha = 0.6) +
+  geom_density(aes(x = fc_gene),  fill = "violetred3", alpha = 0.6) +
+  scale_x_log10() +
+  theme_bw() +
+  labs( x = "Изменение концентрации. Синее - белка, красное - гена", 
+        y = "плотность",
+        title ="Распределение изменеия концентраций белков и генов",
+        subtitle ="при индукции ангидробиоза") +
+  theme_bw()
+
+p8
+
+
