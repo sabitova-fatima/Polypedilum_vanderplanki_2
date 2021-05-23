@@ -1,14 +1,10 @@
-
-
-
-install.packages("chromoMap")
+# install.packages("chromoMap")
 # install.packages("xlsx")
 # install.packages("RecordLinkage")
 # install.packages("Bioconductor")
 # library(RecordLinkage)
 # setwd("/cloud/project/Polypedilum_vanderplanki_2")
 
-# library(RecordLinkage)
 library(readxl)
 library(tidyverse)
 library(dplyr)
@@ -168,129 +164,6 @@ proteome$fc <- proteome$t24_mean / proteome$t0_mean
 proteome <-proteome[order(proteome$Start),]
 proteome <-proteome[order(proteome$Start),]
 
-##### function definitions ##### 
-
-# shows how many proteins in a row come together
-# if (o >= 4) - show only group of 4
-# quantile(x, na.rm=TRUE)[2] - change 2 to 3 to use median
-
-belki_sosedi <- function(chr1, x) {
-  o = 1;
-  chr$close <- 0
-  chr <- as.data.frame(chr1)
-  for (i in 1:nrow(chr)-1){
-    n <- chr$Start[i + 1] - chr$End[i]
-    # n - расстояние от одного белка до другого
-    if (!is.na(n) && n <= quantile(x, na.rm=TRUE)[3]){
-      if (o >= 8){
-        print(o)
-      }
-      o = o + 1
-    }
-    else
-      o = 1
-  }
-  return (chr)
-}
-
-##### chromosome 1 #####
-
-proteome %>% filter(Strand == "+") %>% filter(`Scaffold Id` == "chr_1") -> chr_1_plus
-proteome %>% filter(Strand == "-") %>% filter(`Scaffold Id` == "chr_1") -> chr_1_minus
-
-x_plus = c()
-
-for(i in 1:nrow(chr_1_plus)) {
-  x_plus[i] = (chr_1_plus$Start[i + 1] - chr_1_plus$End[i])
-}
-
-chr <- belki_sosedi(chr_1_plus, x_plus)
-# summary(x_plus, na.rm=TRUE)
-
-x_minus = c()
-
-for(i in 1:nrow(chr_1_minus)) {
-  x_minus[i] = (chr_1_minus$Start[i + 1] - chr_1_minus$End[i])
-}
-
-belki_sosedi(chr_1_minus, x_minus)
-# summary(x_minus, na.rm=TRUE)
-
-##### chromosome 2 #####
-
-proteome %>% filter(Strand == "+") %>% filter(`Scaffold Id` == "chr_2") -> chr_2_plus
-proteome %>% filter(Strand == "-") %>% filter(`Scaffold Id` == "chr_2") -> chr_2_minus
-
-x_plus = c()
-
-for(i in 1:nrow(chr_2_plus)) {
-  x_plus[i] = (chr_2_plus$Start[i + 1] - chr_2_plus$End[i])
-}
-
-chr <- belki_sosedi(chr_2_plus, x_plus)
-# summary(x_plus, na.rm=TRUE)
-
-x_minus = c()
-
-for(i in 1:nrow(chr_2_minus)) {
-  x_minus[i] = (chr_2_minus$Start[i + 1] - chr_2_minus$End[i])
-}
-
-belki_sosedi(chr_2_plus, x_minus)
-# summary(x_minus, na.rm=TRUE)
-
-##### chromosome 3 #####
-
-proteome %>% filter(Strand == "+") %>% filter(`Scaffold Id` == "chr_3") -> chr_3_plus
-proteome %>% filter(Strand == "-") %>% filter(`Scaffold Id` == "chr_3") -> chr_3_minus
-
-x_plus = c()
-
-for(i in 1:nrow(chr_3_plus)) {
-  x_plus[i] = (chr_3_plus$Start[i + 1] - chr_3_plus$End[i])
-}
-
-belki_sosedi(chr_3_plus, x_plus)
-# summary(x_plus, na.rm=TRUE)
-
-x_minus = c()
-
-for(i in 1:nrow(chr_3_minus)) {
-  x_minus[i] = (chr_3_minus$Start[i + 1] - chr_3_minus$End[i])
-}
-
-belki_sosedi(chr_3_minus, x_minus)
-# summary(x_minus, na.rm=TRUE)
-
-##### chromosome 4 #####
-
-proteome %>% filter(Strand == "+") %>% filter(`Scaffold Id` == "chr_4") -> chr_4_plus
-proteome %>% filter(Strand == "-") %>% filter(`Scaffold Id` == "chr_4") -> chr_4_minus
-
-x_plus = c()
-
-for(i in 1:nrow(chr_4_plus)) {
-  x_plus[i] = (chr_4_plus$Start[i + 1] - chr_4_plus$End[i])
-}
-
-# summary(x_plus, na.rm=TRUE)
-belki_sosedi(chr_4_plus, x_plus)
-
-x_minus <- c()
-for(i in 1:nrow(chr_4_minus)) {
-  x_minus[i] <- (chr_4_minus$Start[i + 1] - chr_4_minus$End[i])
-}
-
-belki_sosedi(chr_4_minus, x_minus)
-# summary(x_minus, na.rm=TRUE)
-
-
-
-#####  plots   #####
-
-
-quantile(proteome$fc, na.rm = T)
-
 ggplot(proteome, aes(x = Transcript, y = fc)) +
   geom_point()
 
@@ -310,24 +183,6 @@ for (i in 1:length(proteome_copy$big_fc)){
     proteome_copy$big_fc[i] <- 1
   }
 }
-
-# 10 - 15
-# 9 - 16
-# 8 - 20
-# 7 - 21
-# 6 - 28
-# 5 - 33
-# 4 - 44
-# 3 - 57
-# 2 - 107
-# 1.5 - 227
-# 1 - 1705
-# all - 4329
-
-proteome_only_big <- filter(proteome_copy, big_fc == 1)
-
-ggplot(proteome_only_big, aes(x = Transcript, y = fc)) +
-  geom_point()
 
 ##### кластеры близких генов #####
 
@@ -364,7 +219,7 @@ quant <- quantile(c(count_dist(chr_1_plus),
 stat = quant[3]
 
 # number of proteins in a row
-treshold = 5
+treshold = 8
 
 write_friends <- function(chr, i, count, value){
   n = i - count
@@ -409,8 +264,7 @@ calc_mean_fc <- function(chr, start, stop)
   for (i in start:stop)
   {
     temp = filter(chr, friends == paste("group", i, sep = "_"))
-    #  print(mean(temp$fc,  na.rm = T) >= mean(proteome$fc, na.rm = T))
-    chr$mean_group_fc[chr$friends == paste("group", i, sep = "_")] <- mean(temp$fc,  na.rm = T)
+    chr$mean_group_fc[chr$friends == paste("group", i, sep = "_")] <- median(temp$fc,  na.rm = T)
   }
   return (chr)
 }
@@ -455,8 +309,6 @@ chr_3_minus <- calc_mean_fc(chr_3_minus, 1, 28)
 chr_4_plus <- calc_mean_fc(chr_4_plus, 1, 4)
 chr_4_minus <- calc_mean_fc(chr_4_minus, 1, 5)
 
-7 + 7 + 3 + 4 + 11 + 7 + 1 + 2
-
 proteome_bind <- bind_rows(
           chr_1_plus, 
           chr_1_minus,
@@ -472,10 +324,15 @@ proteome_groups_only <- filter(proteome_bind, mean_group_fc != 0)
 
 # df в котором только белки, разделенные на группы (= стоящие близкими группами) 
 # и изменение которых больше среднего изменения по протеому
-proteome_meaningful<- filter(proteome_groups_only, mean_group_fc > 
-                               mean(proteome$fc, na.rm = T))
+# proteome_meaningful<- filter(proteome_groups_only, mean_group_fc > 
+#                                median(proteome$fc, na.rm = T))
 
-# write.xlsx(proteome_meaningful, "proteome_meaningful.xlsx", sheetName="Sheet1", 
+
+
+proteome_meaningful<- filter(proteome_groups_only, mean_group_fc > 1)
+
+
+# write.xlsx(proteome_meaningful, "proteome_meaningful.xlsx", sheetName="Sheet1",
 #            col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
 
 ##### сравнение с генами #####
@@ -492,29 +349,27 @@ proteome_genome$fc_gene <- proteome_genome$`RPKM (PvD0` / proteome_genome$`RPKM 
 proteome_genome  %>% filter(fc < 10) -> proteome_genome_2
 
 p <- ggplot(proteome_genome_2, aes(x=fc, y=fc_gene))
-
-p + geom_jitter(size=0.5, color = "dark blue") +
-labs( x = "Изменение концентрации белка", 
-      y = "Изменение экспрессии гена",
-      title ="Зависимость концентрации белка от экспрессии его гена",
-      subtitle ="при индукции ангидробиоза") +
-      theme_bw()
-
+# 
+# p + geom_jitter(size=0.5, color = "dark blue") +
+# labs( x = "Изменение концентрации белка", 
+#       y = "Изменение экспрессии гена",
+#       title ="Зависимость концентрации белка от экспрессии его гена",
+#       subtitle ="при индукции ангидробиоза") +
+#       theme_bw()
 
 proteome_genome_2 <- select(proteome_genome_2, fc, fc_gene)
 
-boxplot(proteome_genome_2,
-        xlab = "Кратность изменения",
-        main = "Изменение концентрации белков и экспрессии 
-        их генов при индукции ангидробиоза",
-        col = c("steelblue4", "violetred3"), horizontal = TRUE,
-        las = 2, 
-        log10="y",
-        names = c("Белки",
-                  "Гены"))
+# boxplot(proteome_genome_2,
+#         xlab = "Кратность изменения",
+#         main = "Изменение концентрации белков и экспрессии 
+#         их генов при индукции ангидробиоза",
+#         col = c("steelblue4", "violetred3"), horizontal = TRUE,
+#         las = 2, 
+#         log10="y",
+#         names = c("Белки",
+#                   "Гены"))
 
 # удалено несколько крайних значений
-
 
 mean(abs(proteome_genome$fc_gene - proteome_genome$fc), na.rm = T)
 mean((proteome_genome$fc_gene - proteome_genome$fc), na.rm = T)
@@ -522,56 +377,33 @@ mean((proteome_genome$fc_gene - proteome_genome$fc), na.rm = T)
 
 temp <- filter(proteome_genome, abs(fc_gene - fc) > 5)
 
-write.xlsx(temp, "5_times_changed_genes.xlsx", sheetName="Sheet1", 
-           col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
-
-write.xlsx(proteome, "proteome.xlsx", sheetName="Sheet1", 
-           col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
-
-proteome$Protein[1]
-proteome$Protein[2]
-
-##### поиск схожих белков #####
+##### поиск схожих по ак послед белков #####
 
 levenshteinSim_1 <- 0 * nrow(proteome) * nrow(proteome)
-
 df <- data.frame(first_column, second_column)
-
-
 proteome_filtered <- filter(proteome, fc > 2)
 
-# 4490
-# 20160100
 max(levenshteinSim_1)
 which(levenshteinSim_1 == max(levenshteinSim_1))
-
-for (j in 2:nrow(proteome_filtered))
-{
-  for(i in 2:nrow(proteome_filtered))
-  {
-    levenshteinSim_1[j * i] <- levenshteinSim(proteome_filtered$Protein[j], proteome_filtered$Protein[i])
-  }
-}
+# 
+# for (j in 2:nrow(proteome_filtered))
+# {
+#   for(i in 2:nrow(proteome_filtered))
+#   {
+#     levenshteinSim_1[j * i] <- levenshteinSim(proteome_filtered$Protein[j], proteome_filtered$Protein[i])
+#   }
+# }
 
 levenshteinSim_1[levenshteinSim_1 >= 0.3 && levenshteinSim_1 < 1]
 # 
 # 0%       25%       50%       75%      100% 
 # 0.0000000 0.1700137 0.2000000 0.2189781 1.0000000
 
-
 which(str_detect(proteome$Protein, "X", negate = FALSE))
 
 proteome_2 <- filter(proteome, !str_detect(proteome$Protein, "X", negate = FALSE))
 # proteome_3 <- filter(proteome_2, is.string(proteome$Protein))
-write.csv(proteome_2, "prot.csv")
-
-for (i in 1:nrow(proteome_2))
-{
-  if (!is.string(proteome$Protein[i]))
-  {
-    print(i)
-  }
-}
+# write.csv(proteome_2, "prot.csv")
 
 ##### plots from python #####
 
@@ -602,9 +434,6 @@ p + geom_jitter(size=0.5, color = "dark blue") +
 
 cor(data$log_income, data$wfood, method = "pearson")
 
-
-# cor(data$log_income, data$wfood, method = "pearson")
-
 from_python <- filter(from_python, is.na(from_python$fc) != T)
 from_python <- filter(from_python, is.na(from_python$gravy) != T)
 from_python <- filter(from_python, is.na(from_python$molecular_weight) != T)
@@ -615,9 +444,9 @@ cor(from_python$fc, from_python$molecular_weight, method = "spearman")
 cor(proteome_genome_2$fc, proteome_genome_2$fc_gene, method = "pearson")
 
 from_python <- filter(from_python, from_python$fc > 10)
-cor(from_python$fc, from_python$gravy, method = "pearson")
+cor(from_python$fc, from_python$Length, method = "pearson")
 
-p8 <- ggplot(proteome_genome_2) + 
+ggplot(proteome_genome_2) + 
   geom_density(aes(x = fc), fill = "steelblue4", alpha = 0.6) +
   geom_density(aes(x = fc_gene),  fill = "violetred3", alpha = 0.6) +
   scale_x_log10() +
@@ -628,6 +457,12 @@ p8 <- ggplot(proteome_genome_2) +
         subtitle ="при индукции ангидробиоза") +
   theme_bw()
 
-p8
+proteome <- filter(proteome, fc > 10)
 
-
+ggplot(proteome, aes(fc, Length))+
+  geom_point(color = "dark blue", size = 0.5)+
+  labs(x = "Изменение концентрации белка", y = "Длина белка в п.н.")+
+  ggtitle('Зависимость изменения концентрации белка от его длины')+
+  theme_minimal() +
+  scale_x_log10() +
+  geom_text(aes(fc, Length, label = Transcript), size = 3, hjust = 0, nudge_x = 0.02)
