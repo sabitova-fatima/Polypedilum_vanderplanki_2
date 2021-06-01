@@ -5,12 +5,12 @@ setwd("C:/Users/User/Desktop/NEW_COURSEWORK")
 library(limma)
 library(tidyverse)
 library(readxl)
-library(esquisse)
-library(phyloseq)
+# library(esquisse)
+# library(phyloseq)
 
 ####### Importing and analyzing #########
 
-The_Proteome <- read_excel("fixed_proteome.xlsx") 
+The_Proteome <- read_excel("fixed_proteome.xlsx")
 The_Proteome$coefficients <- log2(The_Proteome$fc)
 write.csv(The_Proteome, "The_Proteome.csv")
 

@@ -12,6 +12,8 @@ library(readr)
 library(chromoMap)
 library(caroline)
 library(xlsx)
+library(limma)
+library(fgsea)
 
 ##### input files ##### 
 new_ass <- read_excel("New assembly annotation.xlsx") 
@@ -20,7 +22,9 @@ yusurika <- read_excel("19c15301_Proteome_yusurika_data_2019 working.xlsx", shee
 names(yusurika)[1] = "Transcript"
 proteome <- left_join(yusurika, new_ass, by = "Transcript")
 
-##### cleaning NA s #####
+##### cleaning NA s and duplicates #####
+
+proteome %>% distinct(Transcript, .keep_all = TRUE) -> proteome
 
 for (i in 1:length(proteome$`Abundances Scaled F5 Sample yusurika_T24`)){
   if (is.na(proteome$`Abundances Scaled F5 Sample yusurika_T24`[i])){
@@ -94,14 +98,70 @@ for (i in 1:length(proteome$`Abundances Scaled F4 Sample yusurika_T0`)){
   }
 }
 
+proteome %>% drop_na(`Abundances Scaled F1 Sample yusurika_T0`,
+                     `Abundances Scaled F2 Sample yusurika_T0`,
+                     `Abundances Scaled F3 Sample yusurika_T0`,
+                     `Abundances Scaled F4 Sample yusurika_T0`,
+                     `Abundances Scaled F5 Sample yusurika_T24`,
+                     `Abundances Scaled F6 Sample yusurika_T24`,
+                     `Abundances Scaled F7 Sample yusurika_T24`,
+                     `Abundances Scaled F8 Sample yusurika_T24`) -> proteome
 
 ##### creating fc #####
 
 proteome$t24_mean <- (proteome$`Abundances Scaled F5 Sample yusurika_T24` + proteome$`Abundances Scaled F6 Sample yusurika_T24` +
-proteome$`Abundances Scaled F7 Sample yusurika_T24` + proteome$`Abundances Scaled F8 Sample yusurika_T24`) / 4
+                        proteome$`Abundances Scaled F7 Sample yusurika_T24` + proteome$`Abundances Scaled F8 Sample yusurika_T24`) / 4
 proteome$t0_mean <- (proteome$`Abundances Scaled F1 Sample yusurika_T0` + proteome$`Abundances Scaled F2 Sample yusurika_T0` +
-                        proteome$`Abundances Scaled F3 Sample yusurika_T0` + proteome$`Abundances Scaled F4 Sample yusurika_T0`) / 4
+                       proteome$`Abundances Scaled F3 Sample yusurika_T0` + proteome$`Abundances Scaled F4 Sample yusurika_T0`) / 4
 proteome$fc <- proteome$t24_mean / proteome$t0_mean
+
+##### limma #####
+
+load("/cloud/project/kegg_definitions_list.RData")
+
+design <- model.matrix(~ 0+factor(c(1,1,1,1,2,2,2,2)))
+colnames(design) <- c("T0", "T24")
+fit <- lmFit(proteome[3:10], design)
+contrast.matrix <- makeContrasts(T24-T0, levels=design)
+fit2 <- contrasts.fit(fit, contrast.matrix)
+fit2 <- eBayes(fit2)
+plotSA(fit2)
+fit.data <- as.data.frame(fit2)
+topTable(fit2, coef=1, adjust="BH")
+glimpse(fit.data)
+# tstat.ord.p.value <- 2*pt( abs(tstat.ord), df=fit$df.residual, lower.tail=FALSE)
+tstat.ord <- fit$coef / fit$stdev.unscaled / fit$sigma
+names(tstat.ord) <- proteome$Transcript
+tstat.ord <- tstat.ord[!duplicated(tstat.ord)]
+tstat.ord <- na.omit(tstat.ord)
+
+ggplot(fit.data) +
+  aes(x =  coefficients) +
+  geom_histogram(bins = 90L, fill = "#0c4c8a") +
+  theme_minimal()
+
+ggplot(proteome) +
+  aes(x = log2(fc)) +
+  geom_histogram(bins = 90L, fill = "#0c4c8a") +
+  theme_minimal()
+
+rand <- runif(1, 0.001, 0.002)
+
+gene_exp_vector <- fit.data$coefficients * runif(4241, 0.001, 0.002)
+names(gene_exp_vector) <- proteome$Transcript
+
+fgsea(
+  pathways = kegg_definitions_grouped_list,
+  stats    = gene_exp_vector,
+  # minSize  = 2,
+  # maxSize  = 500,
+  eps = 0.0,
+  scoreType = "pos"
+)
+
+test <- setNames(tstat.ord, c(proteome$Transcript))
+
+
 
 # 
 # ##### visualizing chromosomes ##### 
@@ -466,3 +526,8 @@ ggplot(proteome, aes(fc, Length))+
   theme_minimal() +
   scale_x_log10() +
   geom_text(aes(fc, Length, label = Transcript), size = 3, hjust = 0, nudge_x = 0.02)
+
+
+
+###### from kursovaya ######
+
