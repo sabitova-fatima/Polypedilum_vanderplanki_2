@@ -129,40 +129,61 @@ plotSA(fit2)
 fit.data <- as.data.frame(fit2)
 topTable(fit2, coef=1, adjust="BH")
 glimpse(fit.data)
-# tstat.ord.p.value <- 2*pt( abs(tstat.ord), df=fit$df.residual, lower.tail=FALSE)
-tstat.ord <- fit$coef / fit$stdev.unscaled / fit$sigma
-names(tstat.ord) <- proteome$Transcript
-tstat.ord <- tstat.ord[!duplicated(tstat.ord)]
-tstat.ord <- na.omit(tstat.ord)
 
-ggplot(fit.data) +
-  aes(x =  coefficients) +
-  geom_histogram(bins = 90L, fill = "#0c4c8a") +
-  theme_minimal()
-
-ggplot(proteome) +
-  aes(x = log2(fc)) +
-  geom_histogram(bins = 90L, fill = "#0c4c8a") +
-  theme_minimal()
-
-rand <- runif(1, 0.001, 0.002)
-
-gene_exp_vector <- fit.data$coefficients * runif(4241, 0.001, 0.002)
-names(gene_exp_vector) <- proteome$Transcript
+rand <- rnorm(4241)
+names(rand) <- proteome$Transcript
 
 fgsea(
   pathways = kegg_definitions_grouped_list,
-  stats    = gene_exp_vector,
+  stats    = rand,
   # minSize  = 2,
   # maxSize  = 500,
-  eps = 0.0,
-  scoreType = "pos"
+  eps = 0.0
+  # scoreType = "pos"
 )
 
-test <- setNames(tstat.ord, c(proteome$Transcript))
+# # tstat.ord.p.value <- 2*pt( abs(tstat.ord), df=fit$df.residual, lower.tail=FALSE)
+# tstat.ord <- fit$coef / fit$stdev.unscaled / fit$sigma
+# names(tstat.ord) <- proteome$Transcript
+# tstat.ord <- tstat.ord[!duplicated(tstat.ord)]
+# tstat.ord <- na.omit(tstat.ord)
+# 
+# ggplot(fit.data) +
+#   aes(x =  coefficients) +
+#   geom_histogram(bins = 90L, fill = "#0c4c8a") +
+#   theme_minimal()
+# 
+# ggplot(proteome) +
+#   aes(x = log2(fc)) +
+#   geom_histogram(bins = 90L, fill = "#0c4c8a") +
+#   theme_minimal()
+# 
+# rand <- runif(1, 0.001, 0.002)
+# 
+# gene_exp_vector <- fit.data$coefficients * runif(4241, 0.001, 0.002)
+# names(gene_exp_vector) <- proteome$Transcript
+# 
+
+# 
+# test <- setNames(tstat.ord, c(proteome$Transcript))
 
 
 
+
+############
+
+ranks <- fit.data$coefficients
+names(ranks) <- proteome$Transcript
+
+fgsea(
+  pathways = kegg_definitions_grouped_list,
+  stats    = ranks,
+  # minSize  = 2,
+  # maxSize  = 500,
+  eps = 0.0
+)
+
+fgsea(kegg_definitions_grouped_list, ranks)
 # 
 # ##### visualizing chromosomes ##### 
 # 
