@@ -117,7 +117,8 @@ proteome$fc <- proteome$t24_mean / proteome$t0_mean
 
 ##### limma #####
 
-load("/cloud/project/kegg_definitions_list.RData")
+# load("/cloud/project/kegg_definitions_list.RData")
+load("/cloud/project/kegg_definitions_list_transcripts.RData")
 
 design <- model.matrix(~ 0+factor(c(1,1,1,1,2,2,2,2)))
 colnames(design) <- c("T0", "T24")
@@ -133,14 +134,78 @@ glimpse(fit.data)
 rand <- rnorm(4241)
 names(rand) <- proteome$Transcript
 
+gene_exp_vector <- fit.data$coefficients + runif(4241, 0.0001, 0.001)
+names(gene_exp_vector) <- proteome$Transcript
+
 fgsea(
-  pathways = kegg_definitions_grouped_list,
-  stats    = rand,
+  pathways = kegg_definitions_grouped_list_trns,
+  stats    = gene_exp_vector,
   # minSize  = 2,
   # maxSize  = 500,
   eps = 0.0
   # scoreType = "pos"
-)
+) -> gsea
+glimse(gsea)
+
+gsea_df <- as.data.frame(gsea[, 1:7])
+gsea_df_genes <- as.character(gsea$leadingEdge)
+write.xlsx(gsea_df, "gsea.xlsx", sheetName="Sheet1",
+           col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
+
+# 620 > 1
+# 122 > 2
+# 31 > 3
+# 26 > 4
+# 11 > 5
+
+# gsea enriched
+gsea_enr <- filter(gsea, size >3)
+
+find_fc <- function (proteome, gene_list, fit.data)
+{
+  temp <- list()
+  a <- list()
+    splitted_str <- strsplit(gene_list[[1]], " ")
+  for(i in splitted_str)
+  {
+    
+    a <- which(proteome$Transcript == i)
+    # fit.data$coefficients[a]
+    temp <- list.append(temp, fit.data$coefficients[a])
+    # temp <- list(temp, a)
+    
+  }
+  return(temp)
+}
+
+
+
+for (i in 1:nrow(gsea_enr))
+{
+  temp <- unlist(find_fc(proteome, gsea_enr$leadingEdge[i], fit.data))
+  gsea_enr$mean_fc[i] <- mean(temp)
+  gsea_enr$median_fc[i] <- median(temp)
+}
+
+sum(gsea_enr$mean_fc > 1)
+sum(gsea_enr$median_fc > 1)
+
+ggplot(gsea_enr) +
+  aes(x =  mean_fc) +
+  geom_histogram(fill = "#0c4c8a") +
+  theme_minimal()
+
+ggplot(gsea_enr) +
+  aes(x =  median_fc) +
+  geom_histogram(fill = "#0c4c8a") +
+  theme_minimal()
+
+# which(proteome$Transcript == as.character(gsea$leadingEdge[1][1]))
+
+# ggplot(gsea) +
+#   aes(x =  NES) +
+#   geom_histogram(bins = 90L, fill = "#0c4c8a") +
+#   theme_minimal() 
 
 # # tstat.ord.p.value <- 2*pt( abs(tstat.ord), df=fit$df.residual, lower.tail=FALSE)
 # tstat.ord <- fit$coef / fit$stdev.unscaled / fit$sigma
@@ -151,39 +216,12 @@ fgsea(
 # ggplot(fit.data) +
 #   aes(x =  coefficients) +
 #   geom_histogram(bins = 90L, fill = "#0c4c8a") +
-#   theme_minimal()
+#   theme_minimal() 
 # 
 # ggplot(proteome) +
 #   aes(x = log2(fc)) +
 #   geom_histogram(bins = 90L, fill = "#0c4c8a") +
 #   theme_minimal()
-# 
-# rand <- runif(1, 0.001, 0.002)
-# 
-# gene_exp_vector <- fit.data$coefficients * runif(4241, 0.001, 0.002)
-# names(gene_exp_vector) <- proteome$Transcript
-# 
-
-# 
-# test <- setNames(tstat.ord, c(proteome$Transcript))
-
-
-
-
-############
-
-ranks <- fit.data$coefficients
-names(ranks) <- proteome$Transcript
-
-fgsea(
-  pathways = kegg_definitions_grouped_list,
-  stats    = ranks,
-  # minSize  = 2,
-  # maxSize  = 500,
-  eps = 0.0
-)
-
-fgsea(kegg_definitions_grouped_list, ranks)
 # 
 # ##### visualizing chromosomes ##### 
 # 
@@ -534,19 +572,18 @@ ggplot(proteome_genome_2) +
   theme_bw() +
   labs( x = "Изменение концентрации. Синее - белка, красное - гена", 
         y = "плотность",
-        title ="Распределение изменеия концентраций белков и генов",
+        title ="Распределение изменения концентраций белков и генов",
         subtitle ="при индукции ангидробиоза") +
   theme_bw()
 
-proteome <- filter(proteome, fc > 10)
+# proteome <- filter(proteome, fc > 10)
 
-ggplot(proteome, aes(fc, Length))+
+ggplot(proteome, aes(Length, fc))+
   geom_point(color = "dark blue", size = 0.5)+
-  labs(x = "Изменение концентрации белка", y = "Длина белка в п.н.")+
+  labs(x =  "Длина белка в п.н.", y = "Изменение концентрации белка")+
   ggtitle('Зависимость изменения концентрации белка от его длины')+
   theme_minimal() +
-  scale_x_log10() +
-  geom_text(aes(fc, Length, label = Transcript), size = 3, hjust = 0, nudge_x = 0.02)
+  scale_y_log10() 
 
 
 
