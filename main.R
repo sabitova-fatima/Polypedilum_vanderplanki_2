@@ -115,6 +115,22 @@ proteome$t0_mean <- (proteome$`Abundances Scaled F1 Sample yusurika_T0` + proteo
                        proteome$`Abundances Scaled F3 Sample yusurika_T0` + proteome$`Abundances Scaled F4 Sample yusurika_T0`) / 4
 proteome$fc <- proteome$t24_mean / proteome$t0_mean
 
+##### plots #####
+
+ggplot(proteome)+
+  geom_boxplot(aes(log2(fc)), fill =   "lightblue3")+
+  theme_minimal() +
+  labs(x =  "log2 изменение экспрессии белка")+
+  ggtitle('Распределение изменения экспрессии белка')
+
+ggplot(proteome, aes(Length, fc))+
+  geom_point(color = "dark blue", size = 0.5)+
+  labs(x =  "Количество аминокислот", y = "Изменение экспрессии белка")+
+  ggtitle('Зависимость изменения экспрессии белка от его длины')+
+  theme_minimal() +
+  scale_y_log10() +
+  scale_x_log10()
+
 ##### limma #####
 
 # load("/cloud/project/kegg_definitions_list.RData")
@@ -131,8 +147,12 @@ fit.data <- as.data.frame(fit2)
 topTable(fit2, coef=1, adjust="BH")
 glimpse(fit.data)
 
-rand <- rnorm(4241)
-names(rand) <- proteome$Transcript
+nrow(fit.data)
+nrow(fit.data[fit.data$F.p.value < 0.05, ])
+
+glimpse(proteome)
+
+##### GSEA #####
 
 gene_exp_vector <- fit.data$coefficients + runif(4241, 0.0001, 0.001)
 names(gene_exp_vector) <- proteome$Transcript
@@ -145,12 +165,12 @@ fgsea(
   eps = 0.0
   # scoreType = "pos"
 ) -> gsea
-glimse(gsea)
+glimpse(gsea)
 
 gsea_df <- as.data.frame(gsea[, 1:7])
 gsea_df_genes <- as.character(gsea$leadingEdge)
-write.xlsx(gsea_df, "gsea.xlsx", sheetName="Sheet1",
-           col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
+# write.xlsx(gsea_df, "gsea.xlsx", sheetName="Sheet1",
+#            col.names = TRUE, row.names = TRUE, append = FALSE, showNA = TRUE)
 
 # 620 > 1
 # 122 > 2
@@ -178,17 +198,16 @@ find_fc <- function (proteome, gene_list, fit.data)
   return(temp)
 }
 
-
-
 for (i in 1:nrow(gsea_enr))
 {
   temp <- unlist(find_fc(proteome, gsea_enr$leadingEdge[i], fit.data))
+  print(gsea_enr$leadingEdge[i])
   gsea_enr$mean_fc[i] <- mean(temp)
   gsea_enr$median_fc[i] <- median(temp)
 }
 
-sum(gsea_enr$mean_fc > 1)
-sum(gsea_enr$median_fc > 1)
+gsea_enr$ko <- strtrim(gsea_enr$pathway, 7)
+gsea_enr <-gsea_enr[order(gsea_enr$median_fc),]
 
 ggplot(gsea_enr) +
   aes(x =  mean_fc) +
@@ -199,6 +218,34 @@ ggplot(gsea_enr) +
   aes(x =  median_fc) +
   geom_histogram(fill = "#0c4c8a") +
   theme_minimal()
+
+plot(gsea_enr$ko, gsea_enr$median_fc)
+
+ggplot(gsea_enr) +
+  aes(pathway, y = median_fc) +
+  geom_point(fill = "#0c4c8a") +
+  xlab("Метаболический путь") +
+  ylab("Медианное изменение концентрации") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  coord_flip()
+
+
+gsea_enr_high <- filter(gsea_enr, median_fc > 0)
+
+gsea_enr_high$median_fc <- round(gsea_enr_high$median_fc, 2)
+
+ggplot(gsea_enr_high) +
+  aes(pathway, y = median_fc) +
+  geom_point(fill = "#0c4c8a") +
+  xlab("Метаболический путь") +
+  ylab("Медианное изменение концентрации") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  geom_text(aes(label=median_fc),hjust=0.5, vjust=-0.7, size = 3)+
+  coord_flip()
+
+
 
 # which(proteome$Transcript == as.character(gsea$leadingEdge[1][1]))
 
@@ -218,10 +265,14 @@ ggplot(gsea_enr) +
 #   geom_histogram(bins = 90L, fill = "#0c4c8a") +
 #   theme_minimal() 
 # 
-# ggplot(proteome) +
-#   aes(x = log2(fc)) +
-#   geom_histogram(bins = 90L, fill = "#0c4c8a") +
-#   theme_minimal()
+ggplot(proteome) +
+  aes(x = log2(fc)) +
+  geom_histogram(fill = "steelblue4") +
+  theme_minimal() +
+  xlab ("log2 изменение концентрации") +
+  ylab("Количество") +
+  scale_x_log10()
+  
 # 
 # ##### visualizing chromosomes ##### 
 # 
@@ -468,25 +519,39 @@ proteome_genome$fc_gene <- proteome_genome$`RPKM (PvD0` / proteome_genome$`RPKM 
 proteome_genome  %>% filter(fc < 10) -> proteome_genome_2
 
 p <- ggplot(proteome_genome_2, aes(x=fc, y=fc_gene))
-# 
-# p + geom_jitter(size=0.5, color = "dark blue") +
-# labs( x = "Изменение концентрации белка", 
-#       y = "Изменение экспрессии гена",
-#       title ="Зависимость концентрации белка от экспрессии его гена",
-#       subtitle ="при индукции ангидробиоза") +
-#       theme_bw()
+
+p + geom_jitter(size=0.5, color = "dark blue") +
+labs( x = "Изменение экспрессии белка",
+      y = "Изменение экспрессии гена",
+      title ="Зависимость экспрссии белков от экспрессии генов",
+      subtitle ="при индукции ангидробиоза") +
+      theme_minimal() +
+  scale_x_log10() +
+  scale_y_log10()
 
 proteome_genome_2 <- select(proteome_genome_2, fc, fc_gene)
 
-# boxplot(proteome_genome_2,
-#         xlab = "Кратность изменения",
-#         main = "Изменение концентрации белков и экспрессии 
-#         их генов при индукции ангидробиоза",
-#         col = c("steelblue4", "violetred3"), horizontal = TRUE,
-#         las = 2, 
-#         log10="y",
-#         names = c("Белки",
-#                   "Гены"))
+view(proteome_genome)
+
+sum(proteome_genome$fc > 1 && proteome_genome$fc_gene < 1, na.rm = T)
+sum(proteome_genome$fc < 1 && proteome_genome$fc_gene > 1, na.rm = T)
+
+nrow(filter(proteome_genome, fc < 0.5 & fc_gene > 2))
+nrow(filter(proteome_genome, fc > 2 & fc_gene < 0.5))
+
+filter(proteome_genome, fc < 0.5 & fc_gene > 2)
+view(filter(proteome_genome, fc > 2 & fc_gene < 0.5))
+
+# view(as.data.frame(kegg_definitions_grouped_list_trns))
+
+boxplot(proteome_genome_2,
+        xlab = "Кратность изменения",
+        main = "Изменение экспрессии белков и их генов",
+        col = c("steelblue4", "violetred3"), horizontal = TRUE,
+        las = 2,
+        log10="y",
+        names = c("Белки",
+                  "Гены"))
 
 # удалено несколько крайних значений
 
@@ -527,7 +592,7 @@ proteome_2 <- filter(proteome, !str_detect(proteome$Protein, "X", negate = FALSE
 ##### plots from python #####
 
 from_python <- read.csv("proteome_from_python.csv")
-view(from_python)
+# view(from_python)
 
 from_python <- filter(from_python, molecular_weight < 750000)
 # выкинули два крайниз значения 
@@ -535,19 +600,18 @@ from_python <- filter(from_python, molecular_weight < 750000)
 p <- ggplot(from_python, aes(x=gravy, y=fc))
 p + geom_jitter(size=0.5, color = "dark blue") +
   labs( x = "значение GRAVY", 
-        y = "Изменение концентрации белка",
-        title ="Зависимость концентрации белка от значения GRAVY",
+        y = "Изменение экспрессии белка",
+        title ="Зависимость изменения экспрессии белка от значения GRAVY",
         subtitle ="при индукции ангидробиоза") +
-  theme_bw() + 
-  scale_y_log10() 
+  theme_minimal() + 
+  scale_y_log10()
 
 p <- ggplot(from_python, aes(x=molecular_weight, y=fc))
 p + geom_jitter(size=0.5, color = "dark blue") +
   labs( x = "Молекулярная масса белка", 
-        y = "Изменение концентрации белка",
-        title ="Зависимость изменения концентрации белка\nот его молекулярной массы",
-        subtitle ="при индукции ангидробиоза") +
-  theme_bw() +
+        y = "Изменение экспрессии белка",
+        title ="Зависимость изменения экспрессии белка от его молекулярной массы") +
+  theme_minimal() +
   scale_y_log10() +
   scale_x_log10()
 
@@ -565,23 +629,45 @@ cor(proteome_genome_2$fc, proteome_genome_2$fc_gene, method = "pearson")
 from_python <- filter(from_python, from_python$fc > 10)
 cor(from_python$fc, from_python$Length, method = "pearson")
 
+proteome_genome_2 <- select(proteome_genome_2, fc, fc_gene)
+colnames(proteome_genome_2) <- c("fold change белка", "fold change гена")
+
+proteome_genome_4 <- gather(proteome_genome_2)
+
+ggplot(proteome_genome_4) + 
+  geom_density(aes(x = value)) +
+  theme_minimal()
+
+
+ggplot(proteome_genome_4, aes(x=value, fill=key)) +
+  geom_density(alpha = 0.5) +
+  scale_x_log10() +
+  labs( x = "Изменение экспрессии белков и генов", 
+        y = "плотность",
+        title ="Распределение изменения экспрессии белков и генов",
+        subtitle ="при индукции ангидробиоза") +
+  scale_fill_manual(values=c("steelblue4", "violetred3", "#56B4E9"), name = "значения")+
+  theme_minimal()
+
+
+
 ggplot(proteome_genome_2) + 
   geom_density(aes(x = fc), fill = "steelblue4", alpha = 0.6) +
   geom_density(aes(x = fc_gene),  fill = "violetred3", alpha = 0.6) +
   scale_x_log10() +
   theme_bw() +
-  labs( x = "Изменение концентрации. Синее - белка, красное - гена", 
+  labs( x = "Изменение экспрессии белков и генов", 
         y = "плотность",
-        title ="Распределение изменения концентраций белков и генов",
+        title ="Распределение изменения экспрессии белков и генов",
         subtitle ="при индукции ангидробиоза") +
-  theme_bw()
+  theme_minimal()
 
 # proteome <- filter(proteome, fc > 10)
 
 ggplot(proteome, aes(Length, fc))+
   geom_point(color = "dark blue", size = 0.5)+
-  labs(x =  "Длина белка в п.н.", y = "Изменение концентрации белка")+
-  ggtitle('Зависимость изменения концентрации белка от его длины')+
+  labs(x =  "Количество аминокислот", y = "Изменение экспрессии белка")+
+  ggtitle('Зависимость изменения экспрессии белка от его длины')+
   theme_minimal() +
   scale_y_log10() 
 
